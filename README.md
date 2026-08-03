@@ -4,7 +4,7 @@
 
 **项目已部署至 Netlify，浏览器直接访问即可使用。**
 
-- **线上地址**：`https://zhilu-ai-app.loca.lt`（已部署，可正常访问）
+- **线上地址**：`https://wgg-aurora.github.io/zhilu/`（已部署，可正常访问）
 - **本地打开**：浏览器直接打开 `zhilu.html` 即可使用
 - **备用部署**：Netlify Drop 拖拽部署（`https://app.netlify.com/drop`）
 
