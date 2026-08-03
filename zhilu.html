@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知路 - 个性化学习路线规划</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--primary:#6366f1;--primary-light:#818cf8;--primary-dark:#4f46e5;--primary-50:#eef2ff;--primary-100:#e0e7ff;--success:#10b981;--success-light:#d1fae5;--warning:#f59e0b;--warning-light:#fef3c7;--danger:#ef4444;--danger-light:#fee2e2;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;--gray-900:#111827;--radius:14px;--radius-sm:10px;--shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);--shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--shadow-xl:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04);--transition:all .2s ease}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--gray-50);color:var(--gray-800);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ===== Landing / Profile Page ===== */
+.landing{min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;padding:24px}
+.landing-card{background:white;border-radius:24px;width:100%;max-width:720px;box-shadow:var(--shadow-xl);overflow:hidden}
+.landing-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:40px 40px 32px;text-align:center;color:white}
+.landing-header .logo{width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;margin:0 auto 16px}
+.landing-header h1{font-size:26px;font-weight:800}
+.landing-header p{font-size:14px;opacity:.85;margin-top:8px}
+.landing-body{padding:36px 40px;max-height:70vh;overflow-y:auto}
+.landing-footer{padding:0 40px 36px;display:flex;justify-content:flex-end;align-items:center;gap:12px}
+.section-label{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.section-label .num{width:24px;height:24px;border-radius:50%;background:var(--primary);color:white;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-label .required{color:var(--danger);font-size:12px}
+.section-desc{font-size:13px;color:var(--gray-500);margin-bottom:16px;margin-left:30px}
+.identity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-left:30px}
+.identity-card{border:2px solid var(--gray-200);border-radius:var(--radius-sm);padding:16px 12px;cursor:pointer;transition:var(--transition);text-align:center;position:relative}
+.identity-card:hover{border-color:var(--primary-light);background:var(--primary-50)}
+.identity-card.selected{border-color:var(--primary);background:var(--primary-50)}
+.identity-card.selected::after{content:'';position:absolute;top:8px;right:8px;width:18px;height:18px;background:var(--primary);border-radius:50%}
+.identity-card.selected::before{content:'';position:absolute;top:12px;right:12px;width:10px;height:6px;border:2px solid white;border-top:0;border-left:0;transform:rotate(45deg);z-index:1}
+.identity-card .ic-icon{font-size:28px;margin-bottom:6px}
+.identity-card .ic-title{font-size:13px;font-weight:600;color:var(--gray-700)}
+.skill-tags{display:flex;flex-wrap:wrap;gap:8px;margin-left:30px}
+.skill-tag{padding:8px 16px;border:2px solid var(--gray-200);border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;transition:var(--transition);color:var(--gray-600);user-select:none}
+.skill-tag:hover{border-color:var(--primary-light);color:var(--primary)}
+.skill-tag.selected{background:var(--primary);color:white;border-color:var(--primary)}
+.idea-box{width:calc(100% - 30px);min-height:100px;padding:14px 16px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;resize:vertical;transition:var(--transition);color:var(--gray-800);margin-left:30px;box-sizing:border-box}
+.idea-box:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-50)}
+.idea-box::placeholder{color:var(--gray-400)}
+
+/* ===== Onboarding ===== */
+.onboarding{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+.onboarding-card{background:white;border-radius:24px;width:100%;max-width:680px;box-shadow:var(--shadow-xl);overflow:hidden}
+.onboarding-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:40px 40px 32px;text-align:center;color:white}
+.onboarding-header .logo{width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;margin:0 auto 16px}
+.onboarding-header h1{font-size:24px;font-weight:800}
+.onboarding-header p{font-size:14px;opacity:.85;margin-top:8px}
+.onboarding-body{padding:36px 40px}
+.step-indicator{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:32px}
+.step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;background:var(--gray-100);color:var(--gray-400);transition:var(--transition)}
+.step-dot.active{background:var(--primary);color:white;box-shadow:0 0 0 4px var(--primary-100)}
+.step-dot.done{background:var(--success);color:white}
+.step-line{width:32px;height:2px;background:var(--gray-200)}
+.step-line.done{background:var(--success)}
+.step-content{min-height:280px}
+.step-title{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--gray-900)}
+.step-desc{font-size:14px;color:var(--gray-500);margin-bottom:24px}
+.onboarding-footer{padding:0 40px 36px;display:flex;justify-content:space-between;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:var(--transition);font-family:inherit}
+.btn-primary{background:var(--primary);color:white}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:var(--shadow-md)}
+.btn-primary:disabled{background:var(--gray-300);cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--gray-600);border:1px solid var(--gray-200)}
+.btn-ghost:hover{background:var(--gray-50)}
+.btn-sm{padding:8px 16px;font-size:13px}
+.option-grid{display:grid;gap:12px}
+.option-grid.cols-2{grid-template-columns:1fr 1fr}
+.option-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+.option-card{border:2px solid var(--gray-200);border-radius:var(--radius-sm);padding:20px;cursor:pointer;transition:var(--transition);position:relative}
+.option-card:hover{border-color:var(--primary-light);background:var(--primary-50)}
+.option-card.selected{border-color:var(--primary);background:var(--primary-50)}
+.option-card.selected::after{content:'';position:absolute;top:12px;right:12px;width:20px;height:20px;background:var(--primary);border-radius:50%}
+.option-card.selected::before{content:'';position:absolute;top:16px;right:16px;width:12px;height:7px;border:2px solid white;border-top:0;border-left:0;transform:rotate(45deg);z-index:1}
+.option-card .opt-icon{font-size:28px;margin-bottom:8px}
+.option-card .opt-title{font-size:14px;font-weight:700;color:var(--gray-900)}
+.option-card .opt-desc{font-size:12px;color:var(--gray-500);margin-top:4px}
+.slider-row{display:flex;align-items:center;gap:16px}
+.slider-row input[type=range]{flex:1;height:6px;border-radius:3px;background:var(--gray-200);appearance:none;outline:none}
+.slider-row input[type=range]::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 2px 6px rgba(99,102,241,.4)}
+.slider-value{min-width:80px;text-align:center;font-size:18px;font-weight:700;color:var(--primary)}
+.level-item{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:12px}
+.level-item .level-name{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.level-item .level-name .badge{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+.level-options{display:flex;gap:8px;flex-wrap:wrap}
+.level-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--gray-200);background:white;font-size:13px;cursor:pointer;transition:var(--transition);font-family:inherit;color:var(--gray-600)}
+.level-btn:hover{border-color:var(--primary-light)}
+.level-btn.selected{background:var(--primary);color:white;border-color:var(--primary)}
+.form-input{width:100%;padding:12px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;color:var(--gray-800);transition:var(--transition);background:white}
+.form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-50)}
+
+/* ===== Main App ===== */
+.app{display:flex;min-height:100vh}
+.sidebar{width:260px;background:var(--gray-900);color:white;padding:24px 16px;position:fixed;height:100vh;overflow-y:auto;z-index:100;transition:var(--transition)}
+.sidebar-brand{display:flex;align-items:center;gap:12px;padding:0 8px 20px;border-bottom:1px solid var(--gray-700);margin-bottom:16px}
+.sidebar-brand .logo{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800}
+.sidebar-brand h1{font-size:18px;font-weight:700}
+.sidebar-brand p{font-size:12px;color:var(--gray-400)}
+.user-profile-box{background:var(--gray-800);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px}
+.user-profile-box .up-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.user-profile-box .up-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-size:16px}
+.user-profile-box .up-name{font-size:13px;font-weight:600}
+.user-profile-box .up-identity{font-size:11px;color:var(--gray-400)}
+.user-profile-box .up-skills{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.user-profile-box .up-skill{font-size:10px;padding:2px 8px;background:var(--gray-700);border-radius:10px;color:var(--gray-300)}
+.nav-section{margin-bottom:16px}
+.nav-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-500);padding:0 12px 8px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);color:var(--gray-300);font-size:14px;font-weight:500;margin-bottom:2px}
+.nav-item:hover{background:var(--gray-800);color:white}
+.nav-item.active{background:var(--primary);color:white}
+.nav-item .icon{font-size:18px;width:20px;text-align:center}
+.nav-item .badge{margin-left:auto;background:var(--gray-700);color:var(--gray-300);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.nav-item.active .badge{background:rgba(255,255,255,.25);color:white}
+.main{flex:1;margin-left:260px;padding:32px;min-height:100vh}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-title h2{font-size:24px;font-weight:700;color:var(--gray-900)}
+.page-title p{font-size:14px;color:var(--gray-500);margin-top:4px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:white;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--gray-100);transition:var(--transition)}
+.stat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.stat-card .stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.stat-card .stat-value{font-size:28px;font-weight:800;color:var(--gray-900)}
+.stat-card .stat-label{font-size:12px;color:var(--gray-500);margin-top:2px}
+.stat-card .stat-sub{font-size:11px;color:var(--gray-400);margin-top:6px}
+
+/* Path */
+.path-overview{background:white;border-radius:var(--radius);padding:24px 28px;box-shadow:var(--shadow);border:1px solid var(--gray-100);margin-bottom:24px}
+.path-overview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.path-overview-header h3{font-size:18px;font-weight:700}
+.path-progress-bar{height:10px;background:var(--gray-100);border-radius:5px;overflow:hidden;margin-bottom:8px}
+.path-progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));border-radius:5px;transition:width .5s ease}
+.path-progress-info{display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500)}
+.path-stages{display:flex;gap:0;margin-top:20px}
+.path-stage-tab{flex:1;padding:12px 16px;text-align:center;border-radius:0;border-bottom:3px solid var(--gray-200);font-size:13px;font-weight:600;color:var(--gray-400)}
+.path-stage-tab:first-child{border-radius:8px 0 0 0}
+.path-stage-tab:last-child{border-radius:0 8px 0 0}
+.path-stage-tab.stage-foundation{border-color:var(--primary)}
+.path-stage-tab.stage-advanced{border-color:var(--warning)}
+.path-stage-tab.stage-practice{border-color:var(--success)}
+.path-stage-tab span{display:block;font-size:11px;font-weight:400;color:var(--gray-400)}
+.path-nodes{display:flex;flex-direction:column;gap:0;position:relative;padding-left:32px}
+.path-node{position:relative;padding:0 0 24px 32px;border-left:3px solid var(--gray-200)}
+.path-node:last-child{border-left-color:transparent;padding-bottom:0}
+.path-node::before{content:'';position:absolute;left:-11px;top:0;width:18px;height:18px;border-radius:50%;background:white;border:3px solid var(--gray-300);transition:var(--transition)}
+.path-node.completed{border-left-color:var(--success)}
+.path-node.completed::before{background:var(--success);border-color:var(--success)}
+.path-node.completed::after{content:'';position:absolute;left:-6px;top:4px;width:8px;height:5px;border:2px solid white;border-top:0;border-left:0;transform:rotate(45deg)}
+.path-node.in-progress{border-left-color:var(--primary)}
+.path-node.in-progress::before{background:var(--primary);border-color:var(--primary);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.4)}50%{box-shadow:0 0 0 8px rgba(99,102,241,0)}}
+.node-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--gray-100);overflow:hidden;transition:var(--transition)}
+.node-card:hover{box-shadow:var(--shadow-md)}
+.node-card-header{padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.node-card-title{flex:1}
+.node-card-title h4{font-size:16px;font-weight:700;color:var(--gray-900)}
+.node-card-title .node-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray-500);margin-top:6px;flex-wrap:wrap}
+.stage-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.stage-foundation{background:var(--primary-50);color:var(--primary-dark)}
+.stage-advanced{background:var(--warning-light);color:var(--warning)}
+.stage-practice{background:var(--success-light);color:var(--success)}
+.node-actions{display:flex;gap:8px;align-items:center}
+.node-status{font-size:12px;font-weight:600;padding:4px 12px;border-radius:6px}
+.status-not-started{background:var(--gray-100);color:var(--gray-500)}
+.status-in-progress{background:var(--primary-50);color:var(--primary)}
+.status-completed{background:var(--success-light);color:var(--success)}
+.node-card-body{padding:0 24px 20px}
+.node-topics{font-size:13px;color:var(--gray-600);line-height:1.7;list-style:none}
+.node-topics li{padding:2px 0;padding-left:16px;position:relative}
+.node-topics li::before{content:'';position:absolute;left:0;top:10px;width:6px;height:6px;border-radius:50%;background:var(--gray-300)}
+.node-recommend{display:flex;gap:16px;margin-top:12px;padding:12px 16px;background:var(--gray-50);border-radius:var(--radius-sm);font-size:12px;color:var(--gray-600)}
+.node-recommend .rec-item{display:flex;align-items:center;gap:4px}
+.node-card-footer{padding:16px 24px;border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center}
+.node-footer-left{font-size:12px;color:var(--gray-500)}
+.node-footer-right{display:flex;gap:8px}
+.path-node.skipped{opacity:.5}
+.path-node.skipped::before{background:var(--gray-300);border-color:var(--gray-300)}
+.node-card.skipped{background:var(--gray-50)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s ease;padding:20px}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:16px;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-xl);transform:translateY(20px);transition:transform .2s ease}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-header{padding:24px 28px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:20px;font-weight:700}
+.modal-close{width:36px;height:36px;border-radius:8px;border:none;background:var(--gray-100);cursor:pointer;font-size:20px;color:var(--gray-500);transition:var(--transition);display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--gray-200)}
+.modal-body{padding:28px}
+.modal-footer{padding:20px 28px;border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center}
+
+/* Quiz */
+.quiz-progress{display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:13px;color:var(--gray-500)}
+.quiz-question{font-size:16px;font-weight:600;color:var(--gray-900);margin-bottom:20px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:10px}
+.quiz-option{padding:14px 18px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);font-size:14px;display:flex;align-items:center;gap:12px}
+.quiz-option:hover{border-color:var(--primary-light);background:var(--primary-50)}
+.quiz-option.selected{border-color:var(--primary);background:var(--primary-50)}
+.quiz-option.correct{border-color:var(--success);background:var(--success-light)}
+.quiz-option.wrong{border-color:var(--danger);background:var(--danger-light)}
+.quiz-option .opt-label{width:28px;height:28px;border-radius:8px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gray-600);flex-shrink:0}
+.quiz-option.selected .opt-label{background:var(--primary);color:white}
+.quiz-option.correct .opt-label{background:var(--success);color:white}
+.quiz-option.wrong .opt-label{background:var(--danger);color:white}
+.quiz-option .opt-text{flex:1}
+.quiz-option .opt-result{font-size:18px}
+.quiz-feedback{margin-top:20px;padding:16px 20px;border-radius:var(--radius-sm);font-size:14px;line-height:1.6}
+.quiz-feedback.correct{background:var(--success-light);color:#065f46}
+.quiz-feedback.wrong{background:var(--danger-light);color:#991b1b}
+.quiz-feedback h5{font-weight:700;margin-bottom:4px;font-size:14px}
+.quiz-result{text-align:center;padding:20px 0}
+.quiz-result .result-score{font-size:48px;font-weight:800;margin-bottom:8px}
+.quiz-result .result-label{font-size:16px;font-weight:600;margin-bottom:16px}
+.quiz-result .result-msg{font-size:14px;color:var(--gray-500);max-width:400px;margin:0 auto}
+
+/* Data Table */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:10px 14px;background:var(--gray-50);color:var(--gray-600);font-weight:600;font-size:12px;border-bottom:1px solid var(--gray-200);white-space:nowrap;position:sticky;top:0}
+.data-table td{padding:10px 14px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+.data-table tr:hover td{background:var(--gray-50)}
+.action-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
+.action-profile_created{background:var(--primary-50);color:var(--primary-dark)}
+.action-start_learning{background:var(--primary-50);color:var(--primary-dark)}
+.action-start_practice{background:var(--warning-light);color:var(--warning)}
+.action-pass_practice{background:var(--success);color:white}
+.action-fail_practice{background:var(--danger-light);color:var(--danger)}
+.action-path_generated{background:var(--primary-100);color:var(--primary-dark)}
+.action-finish_all{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white}
+.table-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--gray-100);overflow:hidden;margin-bottom:24px}
+.table-card .table-header{padding:20px 24px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
+.table-card .table-header h3{font-size:16px;font-weight:700}
+.table-card .table-header p{font-size:12px;color:var(--gray-500);margin-top:2px}
+.table-wrap{overflow-x:auto;max-height:400px;overflow-y:auto}
+
+/* Chart card */
+.chart-card{background:white;border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid var(--gray-100)}
+.chart-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.chart-card .chart-desc{font-size:12px;color:var(--gray-500);margin-bottom:20px}
+.chart-container{position:relative;height:220px}
+
+/* Empty / Toast */
+.empty-state{text-align:center;padding:80px 20px}
+.empty-state .empty-icon{font-size:64px;margin-bottom:16px;opacity:.3}
+.empty-state h3{font-size:18px;color:var(--gray-600);margin-bottom:8px}
+.empty-state p{font-size:14px;color:var(--gray-400);margin-bottom:24px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--gray-900);color:white;padding:12px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;z-index:300;box-shadow:var(--shadow-lg);transition:transform .3s ease}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.bg-primary{background:linear-gradient(135deg,#6366f1,#818cf8)}
+.bg-warning{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.bg-success{background:linear-gradient(135deg,#10b981,#34d399)}
+.bg-danger{background:linear-gradient(135deg,#ef4444,#f87171)}
+.bg-blue{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
+.bg-purple{background:linear-gradient(135deg,#8b5cf6,#a78bfa)}
+@media(max-width:1024px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.main{margin-left:0;padding:20px 16px}.option-grid.cols-3{grid-template-columns:1fr}.identity-grid{grid-template-columns:1fr 1fr}}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ===== Landing / Profile Page ===== -->
+<div id="landing" class="landing">
+  <div class="landing-card">
+    <div class="landing-header">
+      <div class="logo">Z</div>
+      <h1>知路 <span style="font-size:12px;font-weight:400;opacity:.6">v2.1</span></h1>
+      <p>告诉我们关于你的信息，我们将为你定制专属学习路线</p>
+    </div>
+    <div class="landing-body">
+      <div style="margin-bottom:32px">
+        <div class="section-label"><span class="num">1</span> 你的身份 <span class="required">*</span></div>
+        <div class="section-desc">选择最符合你当前状态的选项</div>
+        <div class="identity-grid" id="identityGrid"></div>
+      </div>
+      <div style="margin-bottom:32px">
+        <div class="section-label"><span class="num">2</span> 技能与爱好</div>
+        <div class="section-desc">选择你感兴趣或已有的技能（可多选，也可跳过）</div>
+        <div class="skill-tags" id="skillTags"></div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="section-label"><span class="num">3</span> 你的想法</div>
+        <div class="section-desc">描述你想学什么、为什么学、有什么目标，帮助我们更好地理解你的需求</div>
+        <textarea class="idea-box" id="ideaBox" placeholder="例如：我是一名大学生，想学Python来做数据分析，希望能在3个月内掌握基础，毕业后从事数据相关工作..." maxlength="500"></textarea>
+        <div style="text-align:right;font-size:12px;color:var(--gray-400);margin-top:4px"><span id="ideaCount">0</span>/500</div>
+      </div>
+    </div>
+    <div class="landing-footer">
+      <button class="btn btn-primary" id="landingBtn" onclick="submitProfile()">开始规划学习路线</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Onboarding ===== -->
+<div id="onboarding" class="onboarding" style="display:none">
+  <div class="onboarding-card">
+    <div class="onboarding-header">
+      <div class="logo">Z</div>
+      <h1>知路</h1>
+      <p>从零开始，找到最适合你的学习路线</p>
+    </div>
+    <div class="onboarding-body">
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot1">1</div><div class="step-line" id="line1"></div>
+        <div class="step-dot" id="dot2">2</div><div class="step-line" id="line2"></div>
+        <div class="step-dot" id="dot3">3</div><div class="step-line" id="line3"></div>
+        <div class="step-dot" id="dot4">4</div><div class="step-line" id="line4"></div>
+        <div class="step-dot" id="dot5">5</div>
+      </div>
+      <div class="step-content" id="stepContent"></div>
+    </div>
+    <div class="onboarding-footer">
+      <button class="btn btn-ghost" id="btnBack" onclick="onboardingBack()" style="visibility:hidden">上一步</button>
+      <button class="btn btn-primary" id="btnNext" onclick="onboardingNext()">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Main App ===== -->
+<div id="app" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">Z</div>
+      <div><h1>知路</h1><p>个性化学习路线</p></div>
+    </div>
+    <div class="user-profile-box" id="userProfileBox"></div>
+    <div class="nav-section">
+      <div class="nav-section-title">导航</div>
+      <div class="nav-item active" data-view="dashboard"><span class="icon">&#9632;</span> 仪表盘</div>
+      <div class="nav-item" data-view="path"><span class="icon">&#9776;</span> 学习路线</div>
+      <div class="nav-item" data-view="practice"><span class="icon">&#10003;</span> 练习记录</div>
+      <div class="nav-item" data-view="data"><span class="icon">&#128202;</span> 学习数据</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">当前学习</div>
+      <div class="nav-item" style="color:var(--gray-400)"><span class="icon">&#128218;</span><span id="currentLearningName">未设置</span></div>
+    </div>
+    <div class="nav-section" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--gray-700)">
+      <div class="nav-item" onclick="editProfile()" style="color:var(--gray-500)"><span class="icon">&#9999;</span> 编辑个人信息</div>
+      <div class="nav-item" onclick="editProfile()" style="color:var(--gray-500)"><span class="icon">&#8635;</span> 重新规划路线</div>
+      <div class="nav-item" onclick="resetAll()" style="color:var(--gray-500)"><span class="icon">&#128465;</span> 清除数据</div>
+      <div class="nav-item" onclick="logout()" style="color:var(--gray-500)"><span class="icon">&#8592;</span> 退出</div>
+    </div>
+  </aside>
+  <main class="main">
+    <div id="view-dashboard">
+      <div class="page-header">
+        <div class="page-title"><h2 id="greeting">学习仪表盘</h2><p id="dateDisplay"></p></div>
+        <button class="btn btn-primary" onclick="switchView('path')">查看学习路线</button>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="path-overview" id="dashboardPathOverview"></div>
+    </div>
+    <div id="view-path" style="display:none">
+      <div class="page-header">
+        <div class="page-title"><h2>学习路线</h2><p id="pathSubtitle">你的个性化学习路径</p></div>
+        <button class="btn btn-ghost" onclick="editProfile()">重新规划</button>
+      </div>
+      <div class="path-container" id="pathContainer"></div>
+    </div>
+    <div id="view-practice" style="display:none">
+      <div class="page-header">
+        <div class="page-title"><h2>练习记录</h2><p>查看你的练习成绩和薄弱点</p></div>
+      </div>
+      <div id="practiceContainer"></div>
+    </div>
+    <div id="view-data" style="display:none">
+      <div class="page-header">
+        <div class="page-title"><h2>学习数据</h2><p>自动记录你的每一次学习行为</p></div>
+      </div>
+      <div id="dataContainer"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Quiz Modal -->
+<div class="modal-overlay" id="quizModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="quizTitle">练习巩固</h3><button class="modal-close" onclick="closeQuiz()">&times;</button></div>
+    <div class="modal-body" id="quizBody"></div>
+    <div class="modal-footer" id="quizFooter" style="display:none">
+      <span id="quizProgressText" style="font-size:13px;color:var(--gray-500)"></span>
+      <button class="btn btn-primary" id="quizNextBtn" onclick="nextQuestion()">提交答案</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== Identity & Skills Data ====================
+var IDENTITIES=[
+  {key:'student_high',icon:'&#127891;',title:'高中生'},
+  {key:'student_college',icon:'&#127891;',title:'大学生'},
+  {key:'student_graduate',icon:'&#128218;',title:'研究生'},
+  {key:'worker_tech',icon:'&#128187;',title:'在职-技术岗'},
+  {key:'worker_nontech',icon:'&#128188;',title:'在职-非技术'},
+  {key:'freelancer',icon:'&#127912;',title:'自由职业者'},
+  {key:'job_seeker',icon:'&#128269;',title:'求职转型者'},
+  {key:'entrepreneur',icon:'&#128640;',title:'创业者'},
+  {key:'retiree',icon:'&#127873;',title:'退休人士'},
+  {key:'other',icon:'&#128100;',title:'其他'}
+];
+var IDENTITY_NAMES={};IDENTITIES.forEach(function(i){IDENTITY_NAMES[i.key]=i.title});
+
+var SKILLS=[
+  {key:'programming',icon:'&#128187;',label:'编程开发'},
+  {key:'data_analysis',icon:'&#128202;',label:'数据分析'},
+  {key:'ai_ml',icon:'&#129504;',label:'人工智能'},
+  {key:'ui_design',icon:'&#127912;',label:'UI设计'},
+  {key:'graphic_design',icon:'&#9999;',label:'平面设计'},
+  {key:'video_edit',icon:'&#127909;',label:'视频剪辑'},
+  {key:'writing',icon:'&#9998;',label:'写作文案'},
+  {key:'math',icon:'&#128208;',label:'数学'},
+  {key:'statistics',icon:'&#128202;',label:'统计学'},
+  {key:'english',icon:'&#127749;',label:'英语'},
+  {key:'japanese',icon:'&#127481;',label:'日语'},
+  {key:'music',icon:'&#127925;',label:'音乐'},
+  {key:'painting',icon:'&#127913;',label:'绘画'},
+  {key:'photography',icon:'&#128247;',label:'摄影'},
+  {key:'product_mgmt',icon:'&#128230;',label:'产品管理'},
+  {key:'project_mgmt',icon:'&#128197;',label:'项目管理'},
+  {key:'marketing',icon:'&#128227;',label:'市场营销'},
+  {key:'hr',icon:'&#129489;',label:'人力资源'},
+  {key:'finance',icon:'&#128176;',label:'财务会计'},
+  {key:'psychology',icon:'&#129504;',label:'心理学'},
+  {key:'philosophy',icon:'&#128214;',label:'哲学'},
+  {key:'physics',icon:'&#9883;',label:'物理'},
+  {key:'chemistry',icon:'&#9881;',label:'化学'},
+  {key:'biology',icon:'&#127807;',label:'生物'},
+  {key:'history',icon:'&#128220;',label:'历史'},
+  {key:'law',icon:'&#9878;',label:'法律'},
+  {key:'health',icon:'&#129657;',label:'医学健康'},
+  {key:'web_dev',icon:'&#127760;',label:'Web开发'}
+];
+var SKILL_NAMES={};SKILLS.forEach(function(s){SKILL_NAMES[s.key]=s.label});
+
+// ==================== Knowledge Base ====================
+var KNOWLEDGE_BASE={
+  python:{
+    name:'Python 编程',icon:'&#128013;',color:'bg-success',
+    description:'从零基础到独立编写 Python 程序，掌握编程核心思维',
+    relatedSkills:['programming','data_analysis','web_dev','ai_ml'],
+    relatedIdentities:['student_high','student_college','student_graduate','worker_tech','worker_nontech','freelancer','job_seeker','entrepreneur','retiree','other'],
+    keywords:['python','编程','代码','程序','自动化','爬虫','脚本','后端','django','flask','pandas','numpy'],
+    nodes:[
+      {id:'py1',name:'Python 环境搭建与基础语法',stage:'foundation',prereq:[],duration:3,topics:['安装 Python 与 IDE','变量、数据类型、运算符','输入输出与字符串格式化','注释与代码规范'],methods:['video','reading'],quiz:[
+        {q:'Python 中以下哪个是合法的变量名？',type:'choice',options:['2name','my_name','class','my-name'],answer:1,explain:'变量名不能以数字开头、不能含连字符、不能是关键字。my_name 符合命名规则。'},
+        {q:'print(type(3.14)) 的输出结果是？',type:'choice',options:["<class 'int'>","<class 'float'>","<class 'str'>","<class 'double'>"],answer:1,explain:'3.14 是浮点数，Python 中浮点数类型为 float。'},
+        {q:'Python 中用哪个函数获取用户输入？',type:'choice',options:['input()','get()','scan()','read()'],answer:0,explain:'input() 函数用于接收用户输入，返回字符串类型。'}
+      ]},
+      {id:'py2',name:'条件判断与循环',stage:'foundation',prereq:['py1'],duration:4,topics:['if/elif/else 条件分支','for 循环与 while 循环','break 与 continue','range() 函数的使用'],methods:['video','practice'],quiz:[
+        {q:'以下代码输出什么？\nfor i in range(3):\n    print(i)',type:'choice',options:['0 1 2','1 2 3','0 1 2 3','1 2'],answer:0,explain:'range(3) 生成 0,1,2，所以输出 0 1 2（每行一个）。'},
+        {q:'while 循环中 break 的作用是？',type:'choice',options:['跳过当前迭代','结束整个循环','跳到下一次迭代','什么都不做'],answer:1,explain:'break 直接结束当前循环语句，不再执行后续迭代。'},
+        {q:'以下哪个是合法的 if 语句？',type:'choice',options:['if x=5:','if (x==5);','if x == 5:','if x==5 then'],answer:2,explain:'Python 中条件用 == 比较，语句以冒号结尾，不需要括号和 then。'}
+      ]},
+      {id:'py3',name:'列表、元组与字典',stage:'foundation',prereq:['py2'],duration:5,topics:['列表的创建与操作','元组的不可变性','字典的键值对','列表推导式'],methods:['reading','practice'],quiz:[
+        {q:'以下代码输出什么？\nlst = [1,2,3]\nlst.append(4)\nprint(len(lst))',type:'choice',options:['3','4','5','报错'],answer:1,explain:'append 向列表末尾添加元素，列表变为 [1,2,3,4]，长度为 4。'},
+        {q:'字典中通过什么访问值？',type:'choice',options:['索引','键','位置','属性'],answer:1,explain:'字典是键值对集合，通过键来访问对应的值。'},
+        {q:'以下哪个创建了一个空字典？',type:'choice',options:['[]','()','{}','set()'],answer:2,explain:'{} 创建空字典。[] 创建空列表，() 创建空元组。'}
+      ]},
+      {id:'py4',name:'函数与模块',stage:'foundation',prereq:['py3'],duration:5,topics:['定义函数 def 与参数传递','返回值与作用域','默认参数与关键字参数','导入模块 import'],methods:['video','reading'],quiz:[
+        {q:'函数中使用什么关键字返回值？',type:'choice',options:['give','return','output','send'],answer:1,explain:'return 关键字将函数执行结果返回给调用者。'},
+        {q:'以下代码输出什么？\ndef f(x, y=2):\n    return x*y\nprint(f(5))',type:'choice',options:['7','10','25','报错'],answer:1,explain:'y 有默认值 2，f(5) 等价于 f(5,2)，返回 5*2=10。'},
+        {q:'导入 math 模块的正确方式是？',type:'choice',options:['import math','include math','use math','require math'],answer:0,explain:'Python 使用 import 语句导入模块。'}
+      ]},
+      {id:'py5',name:'文件操作与异常处理',stage:'advanced',prereq:['py4'],duration:4,topics:['文件的打开、读写与关闭','with 语句的上下文管理','try/except 异常捕获','常见异常类型'],methods:['reading','practice'],quiz:[
+        {q:'with open("f.txt") as f 的好处是？',type:'choice',options:['读取速度更快','自动关闭文件','可以同时读写','支持所有格式'],answer:1,explain:'with 语句会在代码块结束后自动关闭文件。'},
+        {q:'以下代码会怎样？\ntry:\n    1/0\nexcept ZeroDivisionError:\n    print("error")',type:'choice',options:['程序崩溃','输出 error','输出 0','无输出'],answer:1,explain:'1/0 抛出 ZeroDivisionError，被 except 捕获。'},
+        {q:'打开文件用于写入的模式是？',type:'choice',options:["'r'","'w'","'read'","'write'"],answer:1,explain:"'w' 模式表示写入。"}
+      ]},
+      {id:'py6',name:'面向对象编程',stage:'advanced',prereq:['py5'],duration:6,topics:['类与对象的概念','属性与方法','构造函数 __init__','继承与多态'],methods:['video','reading'],quiz:[
+        {q:'Python 中定义类使用哪个关键字？',type:'choice',options:['class','def','struct','object'],answer:0,explain:'class 关键字用于定义类。'},
+        {q:'构造方法 __init__ 的作用是？',type:'choice',options:['销毁对象','初始化对象属性','定义类方法','导入模块'],answer:1,explain:'__init__ 在创建对象时自动调用，用于初始化属性。'},
+        {q:'子类继承父类使用什么语法？',type:'choice',options:['class Son: Parent','class Son(Parent):','class Son extends Parent','class Son <- Parent'],answer:1,explain:'在类名后加括号写父类名。'}
+      ]},
+      {id:'py7',name:'常用标准库',stage:'advanced',prereq:['py6'],duration:4,topics:['os 与 sys 系统操作','datetime 时间处理','json 数据序列化','re 正则表达式入门'],methods:['reading','practice'],quiz:[
+        {q:'json.loads() 的作用是？',type:'choice',options:['将 Python 对象转为 JSON 字符串','将 JSON 字符串转为 Python 对象','加载 JSON 文件','验证 JSON 格式'],answer:1,explain:'json.loads() 将 JSON 字符串解析为 Python 对象。'},
+        {q:'获取当前日期时间使用？',type:'choice',options:['datetime.now()','datetime.today()','datetime.current()','以上都不对'],answer:0,explain:'datetime.datetime.now() 返回当前日期和时间。'},
+        {q:'os.path.join() 的优势是？',type:'choice',options:['速度更快','自动处理路径分隔符','可以创建目录','压缩文件路径'],answer:1,explain:'自动使用正确的路径分隔符，保证跨平台兼容。'}
+      ]},
+      {id:'py8',name:'实战项目：数据分析脚本',stage:'practice',prereq:['py7'],duration:8,topics:['读取 CSV 数据','数据清洗与统计','生成报表','代码优化与重构'],methods:['practice'],quiz:[
+        {q:'读取 CSV 文件推荐使用哪个模块？',type:'choice',options:['json','csv','re','os'],answer:1,explain:'csv 模块提供 CSV 文件读写功能。'},
+        {q:'数据清洗通常不包括以下哪项？',type:'choice',options:['处理缺失值','去除重复数据','修改数据类型','增加数据行数'],answer:3,explain:'数据清洗是去除或修正问题数据，不是增加新数据。'},
+        {q:'代码重构的主要目标是？',type:'choice',options:['增加功能','提高运行速度','改善代码结构和可读性','减少代码行数'],answer:2,explain:'重构是在不改变功能的前提下改善代码结构。'}
+      ]},
+      {id:'py9',name:'实战项目：Web 爬虫入门',stage:'practice',prereq:['py8'],duration:6,topics:['requests 库发送 HTTP 请求','BeautifulSoup 解析 HTML','数据提取与存储','爬虫礼仪与 robots.txt'],methods:['practice'],quiz:[
+        {q:'requests.get() 返回对象的哪个属性包含响应内容？',type:'choice',options:['.data','.body','.text','.content_all'],answer:2,explain:'response.text 返回响应内容的字符串形式。'},
+        {q:'BeautifulSoup 中通过什么方法查找所有指定标签？',type:'choice',options:['find()','search()','find_all()','select_all()'],answer:2,explain:'find_all() 查找所有匹配的标签。'},
+        {q:'爬虫应遵守 robots.txt 是因为？',type:'choice',options:['法律要求','网站访问规范和道德','提高爬取效率','避免被封 IP'],answer:1,explain:'robots.txt 是网站的爬虫协议，遵守它是基本的网络礼仪。'}
+      ]}
+    ]
+  },
+  machine_learning:{
+    name:'机器学习',icon:'&#129504;',color:'bg-primary',
+    description:'理解机器学习核心概念，掌握经典算法并能实际应用',
+    relatedSkills:['ai_ml','programming','data_analysis','math','statistics'],
+    relatedIdentities:['student_high','student_college','student_graduate','worker_tech','worker_nontech','freelancer','job_seeker','entrepreneur','retiree','other'],
+    keywords:['机器学习','深度学习','ai','ml','神经网络','算法','模型','训练','数据科学','scikit','tensorflow','pytorch'],
+    nodes:[
+      {id:'ml1',name:'数学基础：线性代数与概率',stage:'foundation',prereq:[],duration:8,topics:['向量与矩阵运算','特征值与特征向量','概率分布与期望方差','贝叶斯定理'],methods:['video','reading'],quiz:[
+        {q:'矩阵乘法 AB 中，A 的列数与 B 的行数需要满足什么？',type:'choice',options:['A列数=B行数','A行数=B列数','两者相同','无要求'],answer:0,explain:'矩阵乘法要求 A 的列数等于 B 的行数。'},
+        {q:'P(A|B) 表示什么？',type:'choice',options:['A发生时B的概率','B发生时A的概率','A和B同时发生的概率','A或B发生的概率'],answer:1,explain:'P(A|B) 是条件概率，表示在 B 已发生的条件下 A 发生的概率。'},
+        {q:'期望 E[X] 的统计含义是？',type:'choice',options:['最可能出现的值','平均值','最大值','中间值'],answer:1,explain:'期望是随机变量在大量重复实验下的长期平均值。'}
+      ]},
+      {id:'ml2',name:'Python 数据科学工具',stage:'foundation',prereq:['ml1'],duration:6,topics:['NumPy 数组运算','Pandas 数据处理','Matplotlib 数据可视化','Jupyter Notebook 使用'],methods:['video','practice'],quiz:[
+        {q:'NumPy ndarray 与 Python 列表的主要区别是？',type:'choice',options:['只能存数字','支持向量化运算','速度更慢','没有区别'],answer:1,explain:'ndarray 支持元素级运算，且底层用 C 实现，速度快。'},
+        {q:'Pandas 中 DataFrame 类似于什么？',type:'choice',options:['字典','列表','Excel 表格','集合'],answer:2,explain:'DataFrame 是二维表格结构，类似 Excel 表格。'},
+        {q:'pd.read_csv() 的作用是？',type:'choice',options:['保存 CSV','读取 CSV 为 DataFrame','转换 CSV 格式','验证 CSV'],answer:1,explain:'pd.read_csv() 将 CSV 文件读入为 DataFrame 对象。'}
+      ]},
+      {id:'ml3',name:'机器学习概论',stage:'foundation',prereq:['ml2'],duration:4,topics:['监督学习与无监督学习','分类与回归','训练集/验证集/测试集','过拟合与欠拟合'],methods:['video','reading'],quiz:[
+        {q:'以下哪个属于监督学习？',type:'choice',options:['K-Means 聚类','主成分分析 PCA','线性回归','关联规则'],answer:2,explain:'线性回归需要标注数据，属于监督学习。'},
+        {q:'过拟合的表现是？',type:'choice',options:['训练集和测试集都差','训练集好但测试集差','训练集和测试集都好','测试集好但训练集差'],answer:1,explain:'过拟合指模型在训练集上表现好但在测试集上表现差。'},
+        {q:'将数据分为训练集和测试集的目的是？',type:'choice',options:['提高训练速度','评估模型泛化能力','减少数据量','增加数据多样性'],answer:1,explain:'测试集用于评估模型在未见过数据上的表现。'}
+      ]},
+      {id:'ml4',name:'线性回归与逻辑回归',stage:'advanced',prereq:['ml3'],duration:6,topics:['线性回归模型与最小二乘法','梯度下降优化','逻辑回归与 Sigmoid 函数','损失函数与评估指标'],methods:['video','reading','practice'],quiz:[
+        {q:'线性回归用来解决什么问题？',type:'choice',options:['分类','回归（连续值预测）','聚类','降维'],answer:1,explain:'线性回归用于预测连续数值。'},
+        {q:'逻辑回归的 Sigmoid 函数输出范围是？',type:'choice',options:['[-1, 1]','[0, 1]','(-inf, inf)','[0, 100]'],answer:1,explain:'Sigmoid 函数将任意实数映射到 (0,1) 区间。'},
+        {q:'梯度下降的核心思想是？',type:'choice',options:['沿梯度方向更新参数','随机选择参数','枚举所有参数','固定步长不更新'],answer:0,explain:'梯度下降沿损失函数的负梯度方向更新参数。'}
+      ]},
+      {id:'ml5',name:'决策树与随机森林',stage:'advanced',prereq:['ml4'],duration:5,topics:['决策树的构建与分裂准则','信息增益与基尼系数','随机森林的集成思想','特征重要性分析'],methods:['video','practice'],quiz:[
+        {q:'决策树选择分裂特征的依据是？',type:'choice',options:['随机选择','信息增益最大','特征顺序','特征名称'],answer:1,explain:'决策树选择使信息增益最大的特征。'},
+        {q:'随机森林相比单棵决策树的优势是？',type:'choice',options:['训练更快','减少过拟合','不需要数据','总是更准确'],answer:1,explain:'随机森林通过集成多棵树有效降低过拟合风险。'},
+        {q:'随机森林中"随机"体现在？',type:'choice',options:['随机选数据子集和特征子集','随机选算法','随机选参数','随机选标签'],answer:0,explain:'随机性体现在随机采样数据和随机选择特征子集。'}
+      ]},
+      {id:'ml6',name:'支持向量机 SVM',stage:'advanced',prereq:['ml5'],duration:5,topics:['最大间隔与支持向量','核技巧与非线性分类','软间隔与正则化','SVM 的适用场景'],methods:['video','reading'],quiz:[
+        {q:'SVM 的核心思想是？',type:'choice',options:['最小化训练误差','找到最大间隔分类超平面','最大化数据维度','最小化模型复杂度'],answer:1,explain:'SVM 寻找能使两类数据间隔最大的分类超平面。'},
+        {q:'核技巧的作用是？',type:'choice',options:['加速计算','将数据映射到高维空间实现线性可分','减少特征数量','压缩数据'],answer:1,explain:'核技巧通过核函数隐式地将数据映射到高维空间。'},
+        {q:'以下哪个是常用的核函数？',type:'choice',options:['Sigmoid 核','线性核','RBF（高斯）核','以上都是'],answer:3,explain:'常用的核函数包括线性核、多项式核、RBF 核和 Sigmoid 核。'}
+      ]},
+      {id:'ml7',name:'神经网络基础',stage:'advanced',prereq:['ml6'],duration:8,topics:['感知机与多层感知机','激活函数（ReLU/Sigmoid/Tanh）','前向传播与反向传播','梯度消失问题'],methods:['video','reading'],quiz:[
+        {q:'神经网络中激活函数的作用是？',type:'choice',options:['加速训练','引入非线性','减少参数','增加数据量'],answer:1,explain:'激活函数引入非线性变换，使神经网络可以拟合复杂关系。'},
+        {q:'反向传播算法用于？',type:'choice',options:['前向计算输出','计算梯度更新权重','初始化网络','评估模型'],answer:1,explain:'反向传播通过链式法则计算损失对权重的梯度。'},
+        {q:'ReLU 激活函数相比 Sigmoid 的优势是？',type:'choice',options:['计算更简单且缓解梯度消失','输出范围更大','总是更准确','不需要偏置'],answer:0,explain:'ReLU 计算简单且在正区间梯度恒为1，有效缓解梯度消失。'}
+      ]},
+      {id:'ml8',name:'模型评估与调优',stage:'advanced',prereq:['ml7'],duration:4,topics:['交叉验证','精确率、召回率与 F1','ROC 曲线与 AUC','超参数调优（网格搜索）'],methods:['reading','practice'],quiz:[
+        {q:'精确率(Precision) 的定义是？',type:'choice',options:['预测为正中实际为正的比例','实际为正中被预测为正的比例','全部预测正确的比例','正负样本的比例'],answer:0,explain:'精确率 = TP/(TP+FP)。'},
+        {q:'K 折交叉验证的好处是？',type:'choice',options:['训练更快','更充分使用数据且评估更可靠','减少数据量','提高模型准确率'],answer:1,explain:'K 折交叉验证评估更稳定可靠。'},
+        {q:'AUC 值为 0.5 意味着？',type:'choice',options:['完美分类','随机猜测水平','完全错误','模型不可用'],answer:1,explain:'AUC=0.5 表示模型没有判别力。'}
+      ]},
+      {id:'ml9',name:'实战项目：房价预测',stage:'practice',prereq:['ml8'],duration:10,topics:['数据探索性分析','特征工程与数据预处理','模型选择与训练','模型对比与结果分析'],methods:['practice'],quiz:[
+        {q:'特征工程的目标是？',type:'choice',options:['增加特征数量','从原始数据中提取更有信息量的特征','减少数据量','美化数据'],answer:1,explain:'特征工程从原始数据中创造对模型更有用的特征。'},
+        {q:'处理缺失值的常见方法不包括？',type:'choice',options:['删除含缺失值的行','用均值/中位数填充','用预测模型填充','忽略不处理'],answer:3,explain:'忽略缺失值会导致模型报错或性能下降。'},
+        {q:'回归模型常用的评估指标是？',type:'choice',options:['准确率','F1 分数','RMSE（均方根误差）','AUC'],answer:2,explain:'RMSE 衡量预测值与真实值的差异。'}
+      ]},
+      {id:'ml10',name:'实战项目：文本分类',stage:'practice',prereq:['ml9'],duration:8,topics:['文本预处理与分词','TF-IDF 特征提取','分类模型训练','模型部署与预测'],methods:['practice'],quiz:[
+        {q:'TF-IDF 衡量的是？',type:'choice',options:['词在文档中的频率','词在整个语料中的稀有程度','词的重要性（频率x稀有度）','词的长度'],answer:2,explain:'TF-IDF = TF x IDF。'},
+        {q:'中文文本处理通常先要做什么？',type:'choice',options:['翻译为英文','分词','去除标点','统计字数'],answer:1,explain:'中文需要先用分词工具进行分词。'},
+        {q:'文本分类属于什么类型的问题？',type:'choice',options:['回归','聚类','监督分类','降维'],answer:2,explain:'文本分类有标注数据，属于监督学习分类问题。'}
+      ]}
+    ]
+  },
+  english:{
+    name:'英语提升',icon:'&#127749;',color:'bg-warning',
+    description:'系统提升英语听说读写能力，从基础到能流畅交流',
+    relatedSkills:['english'],
+    relatedIdentities:['student_high','student_college','student_graduate','job_seeker','worker_tech','worker_nontech','freelancer','entrepreneur'],
+    keywords:['英语','english','口语','听力','阅读','写作','语法','词汇','四六级','雅思','托福','考研英语'],
+    nodes:[
+      {id:'en1',name:'音标与发音基础',stage:'foundation',prereq:[],duration:5,topics:['元音与辅音音标','发音规则与连读','重音与语调','常见发音误区纠正'],methods:['video','practice'],quiz:[
+        {q:'英语中有多少个元音音素？',type:'choice',options:['12','20','26','5'],answer:1,explain:'英语有 20 个元音音素（12 个单元音 + 8 个双元音）。'},
+        {q:'单词 "about" 的重音在第几个音节？',type:'choice',options:['第1个','第2个','两个都重读','都不重读'],answer:1,explain:'about 重音在第二个音节。'},
+        {q:'连读 "an apple" 时通常读作？',type:'choice',options:['an apple（分开读）','a napple（连读）','annapple','anapple'],answer:1,explain:'辅音+元音连读，听起来像 "a napple"。'}
+      ]},
+      {id:'en2',name:'核心语法：时态系统',stage:'foundation',prereq:['en1'],duration:6,topics:['一般现在时与一般过去时','现在进行时与过去进行时','现在完成时与过去完成时','将来时态'],methods:['video','reading'],quiz:[
+        {q:'选择正确时态：I ___ my homework now.',type:'choice',options:['do','did','am doing','have done'],answer:2,explain:'now 表示此刻正在进行，用现在进行时。'},
+        {q:'选择正确时态：She ___ in Beijing for 3 years.',type:'choice',options:['lived','has lived','is living','was living'],answer:1,explain:'for 3 years 用现在完成时 has lived。'},
+        {q:'选择正确时态：When I arrived, the meeting ___ already.',type:'choice',options:['started','has started','had started','is starting'],answer:2,explain:'过去的过去用过去完成时 had started。'}
+      ]},
+      {id:'en3',name:'核心语法：从句与句型',stage:'foundation',prereq:['en2'],duration:6,topics:['定语从句（限制性与非限制性）','名词性从句','状语从句','虚拟语气入门'],methods:['reading','practice'],quiz:[
+        {q:'填入正确的关系代词：The book ___ I bought is great.',type:'choice',options:['who','which','whose','where'],answer:1,explain:'先行词 book 是物，用 which 或 that。'},
+        {q:'识别从句类型：What he said is true.',type:'choice',options:['定语从句','主语从句','状语从句','宾语从句'],answer:1,explain:'What he said 作为主语，是主语从句。'},
+        {q:'虚拟语气：If I ___ you, I would go.',type:'choice',options:['am','was','were','be'],answer:2,explain:'与现在事实相反的虚拟语气，be 动词用 were。'}
+      ]},
+      {id:'en4',name:'词汇积累与记忆法',stage:'foundation',prereq:['en3'],duration:8,topics:['高频核心词汇 2000','词根词缀记忆法','同义词与反义词辨析','语境记忆与搭配'],methods:['reading','practice'],quiz:[
+        {q:'词根 "port" 的含义是？',type:'choice',options:['carry（搬运）','light（光）','water（水）','fire（火）'],answer:0,explain:'port 意为搬运，如 import、export、transport。'},
+        {q:'"un-" 前缀的作用是？',type:'choice',options:['表示"再次"','表示"不、相反"','表示"非常"','表示"之前"'],answer:1,explain:'un- 是否定前缀。'},
+        {q:'以下哪组是同义词？',type:'choice',options:['happy / sad','big / large','hot / cold','fast / slow'],answer:1,explain:'big 和 large 都表示"大"。'}
+      ]},
+      {id:'en5',name:'阅读理解训练',stage:'advanced',prereq:['en4'],duration:6,topics:['略读与寻读','段落主旨与细节理解','推理与作者态度','长难句拆解'],methods:['reading','practice'],quiz:[
+        {q:'Skimming（略读）的目的是？',type:'choice',options:['了解文章大意','查找特定信息','逐字阅读','翻译全文'],answer:0,explain:'Skimming 是快速浏览获取文章大意。'},
+        {q:'阅读中遇到生词最好的策略是？',type:'choice',options:['立即查字典','根据上下文猜测','跳过不理','停止阅读'],answer:1,explain:'根据上下文推断词义是高效阅读的核心技能。'},
+        {q:'主题句通常出现在段落的？',type:'choice',options:['句首','句中','句尾','任意位置'],answer:0,explain:'英语段落通常主题句多在段首。'}
+      ]},
+      {id:'en6',name:'听力训练',stage:'advanced',prereq:['en5'],duration:6,topics:['连读、弱读与吞音识别','数字与时间听写','对话与短文听力','新闻听力入门'],methods:['video','practice'],quiz:[
+        {q:'英语中 "going to" 在口语中常弱读为？',type:'choice',options:['going to','gonna','goto','going'],answer:1,explain:'口语中常缩读为 gonna。'},
+        {q:'听力训练中"精听"指的是？',type:'choice',options:['只听一遍','逐句反复听并对照原文','听不同材料','边听边翻译'],answer:1,explain:'精听是逐句反复听直到完全听懂。'},
+        {q:'数字 "15" 和 "50" 的重音区别是？',type:'choice',options:['没有区别','15重音在后，50重音在前','15重音在前，50重音在后','15更短'],answer:1,explain:'fifTEEN 重音在后，FIFty 重音在前。'}
+      ]},
+      {id:'en7',name:'口语表达训练',stage:'advanced',prereq:['en6'],duration:6,topics:['日常对话场景练习','观点表达与讨论','发音纠正与流利度','口语常用句型'],methods:['video','practice'],quiz:[
+        {q:'别人说 "How do you do?" 时，礼貌回答是？',type:'choice',options:['Fine, thanks.','How do you do?','I am good.','Nice to meet you.'],answer:1,explain:'标准回答是重复 How do you do?'},
+        {q:'表达个人观点时可以用？',type:'choice',options:['In my opinion...','It is said that...','According to...','There is...'],answer:0,explain:'In my opinion... 是表达个人观点的句型。'},
+        {q:'更礼貌地表达"我不同意"是？',type:'choice',options:["I don't agree.","You are wrong.","I see your point, but...","No, no, no."],answer:2,explain:'先肯定对方再表达不同意见更礼貌。'}
+      ]},
+      {id:'en8',name:'写作基础训练',stage:'advanced',prereq:['en7'],duration:8,topics:['句子结构与段落组织','常用连接词与过渡语','应用文写作','议论文结构'],methods:['reading','practice'],quiz:[
+        {q:'英文写作中 "topic sentence" 的作用是？',type:'choice',options:['总结全文','表达段落主旨','举例说明','连接段落'],answer:1,explain:'主题句表达段落的核心观点。'},
+        {q:'表示转折的连接词是？',type:'choice',options:['Moreover','However','Therefore','For example'],answer:1,explain:'However 表示转折。'},
+        {q:'正式邮件结尾常用的落款是？',type:'choice',options:['See ya!','Yours sincerely,','Bye bye','Love,'],answer:1,explain:'Yours sincerely, 是正式落款。'}
+      ]},
+      {id:'en9',name:'综合实战：模拟考试',stage:'practice',prereq:['en8'],duration:10,topics:['阅读理解模拟','听力模拟','写作模拟','口语模拟与复盘'],methods:['practice'],quiz:[
+        {q:'考试中时间分配的原则是？',type:'choice',options:['每题平均分配','先易后难，合理分配','先做难题','只做简单的题'],answer:1,explain:'先易后难是核心策略。'},
+        {q:'阅读理解答题时应该？',type:'choice',options:['先读全文再读题','先读题再带着问题找答案','只读题不读文章','逐字翻译全文'],answer:1,explain:'先读题再回文章定位更高效。'},
+        {q:'写作考试中卷面整洁的重要性在于？',type:'choice',options:['不影响评分','影响阅卷印象和评分','只影响美观','只对低水平重要'],answer:1,explain:'整洁的卷面给阅卷人良好印象。'}
+      ]}
+    ]
+  }
+};
+
+// ==================== State ====================
+var STORAGE_KEY='zhilu_state_v2';
+var DEFAULT_STATE={
+  profile:null,onboarded:false,selectedSubject:null,
+  selfCheck:{levels:{},dailyTime:60,preferredMethod:'mixed',goal:'balanced',targetDate:null},
+  learningPath:[],nodeProgress:{},practiceRecords:[],activityLog:[]
+};
+var state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+var currentView='dashboard';
+var onboardingStep=0;
+var quizState={nodeId:null,questions:[],currentIdx:0,answers:[],submitted:false};
+var scoreTrendChart=null;
+var profileDraft={identity:null,skills:[],idea:''};
+
+// ==================== Landing / Profile ====================
+function renderLanding(){
+  var identityHtml=IDENTITIES.map(function(i){
+    return '<div class="identity-card '+(profileDraft.identity===i.key?'selected':'')+'" onclick="selectIdentity(\''+i.key+'\')"><div class="ic-icon">'+i.icon+'</div><div class="ic-title">'+i.title+'</div></div>';
+  }).join('');
+  document.getElementById('identityGrid').innerHTML=identityHtml;
+  var skillsHtml=SKILLS.map(function(s){
+    return '<span class="skill-tag '+(profileDraft.skills.indexOf(s.key)>=0?'selected':'')+'" onclick="toggleSkill(\''+s.key+'\')"><span class="tag-icon">'+s.icon+'</span>'+s.label+'</span>';
+  }).join('');
+  document.getElementById('skillTags').innerHTML=skillsHtml;
+  document.getElementById('ideaBox').value=profileDraft.idea;
+  document.getElementById('ideaCount').textContent=profileDraft.idea.length;
+  document.getElementById('landingBtn').disabled=!profileDraft.identity;
+}
+
+function selectIdentity(key){profileDraft.identity=key;renderLanding()}
+function toggleSkill(key){var i=profileDraft.skills.indexOf(key);if(i>=0)profileDraft.skills.splice(i,1);else profileDraft.skills.push(key);renderLanding()}
+
+// ==================== Recommendation Engine ====================
+function recommendSubjects(){
+  var profile=state.profile;
+  if(!profile)return[];
+  var results=[];
+  Object.keys(KNOWLEDGE_BASE).forEach(function(key){
+    var sub=KNOWLEDGE_BASE[key];
+    var score=0,reasons=[];
+    // Skill matching (max ~50 points)
+    var matchedSkills=sub.relatedSkills.filter(function(s){return profile.skills.indexOf(s)>=0});
+    if(matchedSkills.length>0){
+      score+=Math.min(50,matchedSkills.length*18);
+      reasons.push('匹配技能: '+matchedSkills.map(function(k){return SKILL_NAMES[k]}).join('、'));
+    }
+    // Identity matching (max ~25 points)
+    if(sub.relatedIdentities.indexOf(profile.identity)>=0){
+      score+=25;
+      reasons.push('适合'+IDENTITY_NAMES[profile.identity]);
+    }
+    // Keyword matching from idea text (max ~25 points)
+    if(profile.idea){
+      var ideaLower=profile.idea.toLowerCase();
+      var matchedKeywords=sub.keywords.filter(function(kw){return ideaLower.indexOf(kw)>=0});
+      if(matchedKeywords.length>0){
+        score+=Math.min(25,matchedKeywords.length*10);
+        reasons.push('想法中提及: '+matchedKeywords.slice(0,3).join('、'));
+      }
+    }
+    results.push({key:key,score:score,reasons:reasons,matchedSkills:matchedSkills});
+  });
+  results.sort(function(a,b){return b.score-a.score});
+  return results;
+}
+
+function submitProfile(){
+  if(!profileDraft.identity){showToast('请先选择你的身份');return}
+  profileDraft.idea=document.getElementById('ideaBox').value.trim();
+  state.profile={identity:profileDraft.identity,skills:profileDraft.skills.slice(),idea:profileDraft.idea,createdAt:new Date().toISOString()};
+  saveState();
+  logActivity('profile_created',null,'完善个人信息','身份: '+IDENTITY_NAMES[profileDraft.identity]+(profileDraft.skills.length>0?' | 技能: '+profileDraft.skills.map(function(k){return SKILL_NAMES[k]}).join(', '):''));
+  document.getElementById('landing').style.display='none';
+  // Always go to onboarding after profile submission, so user can (re)select subject and plan route
+  startOnboarding();
+}
+
+function editProfile(){
+  profileDraft={identity:state.profile?state.profile.identity:null,skills:state.profile?state.profile.skills.slice():[],idea:state.profile?state.profile.idea:''};
+  document.getElementById('app').style.display='none';
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('landing').style.display='flex';
+  renderLanding();
+}
+
+// ==================== Activity Logging ====================
+function logActivity(action,nodeId,nodeName,detail){
+  state.activityLog.push({time:new Date().toISOString(),action:action,nodeId:nodeId,nodeName:nodeName,detail:detail});
+  saveState();
+}
+
+// ==================== Onboarding ====================
+function startOnboarding(){
+  onboardingStep=0;
+  document.getElementById('onboarding').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('landing').style.display='none';
+  renderOnboardingStep();
+}
+
+function renderOnboardingStep(){
+  var steps=[{dot:1,title:'选择学习目标',desc:'选择你想学习的知识领域，我们将为你定制专属路线'},{dot:2,title:'自检：知识水平',desc:'评估你在该领域各知识点的当前水平，帮助跳过已掌握内容'},{dot:3,title:'学习时间与方式',desc:'告诉我们你的时间安排和偏好，我们会据此优化路线'},{dot:4,title:'学习目标',desc:'设定你的学习目标和期望完成时间'},{dot:5,title:'路线生成',desc:'查看为你生成的个性化学习路线'}];
+  var step=steps[onboardingStep];
+  for(var i=1;i<=5;i++){var d=document.getElementById('dot'+i);d.classList.remove('active','done');if(i<step.dot)d.classList.add('done');else if(i===step.dot)d.classList.add('active');d.textContent=i<step.dot?'\u2713':String(i)}
+  for(var i=1;i<=4;i++)document.getElementById('line'+i).classList.toggle('done',i<step.dot);
+  document.getElementById('btnBack').style.visibility=onboardingStep===0?'hidden':'visible';
+  var nb=document.getElementById('btnNext');
+  nb.textContent=onboardingStep===4?'开始学习':'下一步';
+  var c=document.getElementById('stepContent');
+  var h='<div class="step-title">'+step.title+'</div><div class="step-desc">'+step.desc+'</div>';
+  if(onboardingStep===0){
+    var recs=recommendSubjects();
+    var topRec=recs[0];
+    // Only show recommendation card when top subject has real differential (skills/keywords matched beyond identity baseline of 25)
+    var hasStrongRec=topRec&&topRec.score>25;
+    if(hasStrongRec){
+      // Show all subjects with score > 25 as recommended, not just the top one
+      var strongRecs=recs.filter(function(r){return r.score>25});
+      strongRecs.forEach(function(rec,idx){
+        var recSub=KNOWLEDGE_BASE[rec.key];
+        var isTop=idx===0;
+        h+='<div style="background:'+(isTop?'linear-gradient(135deg,var(--primary-50),var(--primary-100))':'var(--gray-50)')+';border:2px solid '+(isTop?'var(--primary-light)':'var(--gray-200)')+';border-radius:var(--radius);padding:20px;margin-bottom:12px;cursor:pointer" onclick="selectSubject(\''+rec.key+'\')"><div style="display:flex;align-items:center;gap:6px;margin-bottom:'+((isTop&&rec.reasons.length>0)?'12px':'0')+'"><span style="font-size:16px">'+(isTop?'&#11088;':'&#127941;')+'</span><span style="font-size:13px;font-weight:700;color:'+(isTop?'var(--primary-dark)':'var(--gray-600)')+'">'+(isTop?'为你推荐':'也不错')+'</span><span style="margin-left:auto;font-size:12px;font-weight:700;color:'+(isTop?'var(--primary)':'var(--gray-500)')+'">匹配度 '+rec.score+'%</span></div><div style="display:flex;align-items:flex-start;gap:16px"><div style="font-size:36px">'+recSub.icon+'</div><div style="flex:1"><div style="font-size:'+(isTop?'18px':'16px')+';font-weight:700;color:var(--gray-900)">'+recSub.name+'</div><div style="font-size:13px;color:var(--gray-600);margin-top:2px">'+recSub.description+'</div>';
+      if(rec.reasons.length>0){
+        h+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">';
+        rec.reasons.forEach(function(r){h+='<span style="font-size:11px;padding:3px 10px;background:white;border-radius:12px;color:var(--primary-dark);font-weight:500;border:1px solid var(--primary-light)">'+r+'</span>'});
+        h+='</div>';
+      }
+      h+='</div></div></div>';
+      });
+      h+='<div style="font-size:13px;font-weight:600;color:var(--gray-500);margin:16px 0 12px;padding-left:4px">&#128270; 或者选择其他领域</div>';
+    }else{
+      h+='<div style="background:var(--gray-50);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px;font-size:13px;color:var(--gray-500)">&#128161; 选择你想学习的知识领域，我们将为你定制专属路线。返回首页填写技能和想法可获得个性化推荐。</div>';
+    }
+    h+='<div class="option-grid">';
+    Object.keys(KNOWLEDGE_BASE).forEach(function(key){
+      var sub=KNOWLEDGE_BASE[key];
+      var rec=recs.filter(function(r){return r.key===key})[0];
+      var isRec=hasStrongRec&&rec&&rec.score>25;
+      var recBadge=isRec?'<div style="position:absolute;top:8px;right:8px;background:var(--primary);color:white;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600">推荐</div>':'';
+      var matchInfo='<div style="font-size:11px;color:var(--gray-400);margin-top:4px">匹配度: '+rec.score+'%</div>';
+      h+='<div class="option-card '+(state.selectedSubject===key?'selected':'')+'" onclick="selectSubject(\''+key+'\')" style="position:relative">'+recBadge+'<div class="opt-icon">'+sub.icon+'</div><div class="opt-title">'+sub.name+'</div><div class="opt-desc">'+sub.description+'</div>'+matchInfo+'</div>';
+    });
+    h+='</div>';
+  }else if(onboardingStep===1){
+    var sub=KNOWLEDGE_BASE[state.selectedSubject];if(!sub){onboardingStep=0;renderOnboardingStep();return}
+    h+='<div style="max-height:320px;overflow-y:auto;padding-right:4px">';
+    sub.nodes.forEach(function(node){
+      var cl=state.selfCheck.levels[node.id]||0;
+      var ll=['不了解','略知一二','基本掌握','完全掌握'];
+      var lc=['var(--danger-light)','var(--warning-light)','var(--primary-50)','var(--success-light)'];
+      var lt=['var(--danger)','var(--warning)','var(--primary)','var(--success)'];
+      h+='<div class="level-item"><div class="level-name">'+node.name+'<span class="badge" style="background:'+lc[cl]+';color:'+lt[cl]+'">'+ll[cl]+'</span></div><div class="level-options">'+ll.map(function(l,i){return '<button class="level-btn '+(cl===i?'selected':'')+'" onclick="setLevel(\''+node.id+'\','+i+')">'+l+'</button>'}).join('')+'</div></div>';
+    });
+    h+='</div>';
+  }else if(onboardingStep===2){
+    var hr=Math.floor(state.selfCheck.dailyTime/60),mn=state.selfCheck.dailyTime%60;
+    h+='<div style="margin-bottom:28px"><label style="display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:12px">每天可投入的学习时间</label><div class="slider-row"><span style="font-size:13px;color:var(--gray-500)">15分钟</span><input type="range" min="15" max="240" step="15" value="'+state.selfCheck.dailyTime+'" oninput="updateTime(this.value)"><span style="font-size:13px;color:var(--gray-500)">4小时</span></div><div class="slider-value" id="timeDisplay" style="margin-top:8px">'+hr+'小时'+(mn>0?mn+'分钟':'')+' / 天</div></div>';
+    var methods=[{key:'video',icon:'&#127909;',t:'视频课程',d:'通过观看教学视频学习'},{key:'reading',icon:'&#128214;',t:'图文阅读',d:'通过阅读教程和文章学习'},{key:'practice',icon:'&#9999;',t:'动手实操',d:'通过实践练习来学习'},{key:'mixed',icon:'&#127919;',t:'混合方式',d:'视频+阅读+实操结合'}];
+    h+='<div><label style="display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:12px">偏好的学习方式</label><div class="option-grid cols-2">'+methods.map(function(m){return '<div class="option-card '+(state.selfCheck.preferredMethod===m.key?'selected':'')+'" onclick="setMethod(\''+m.key+'\')"><div class="opt-icon">'+m.icon+'</div><div class="opt-title">'+m.t+'</div><div class="opt-desc">'+m.d+'</div></div>'}).join('')+'</div></div>';
+  }else if(onboardingStep===3){
+    var goals=[{key:'quick',icon:'&#9889;',t:'快速入门',d:'尽快掌握核心知识'},{key:'balanced',icon:'&#127919;',t:'均衡学习',d:'稳步推进，兼顾深度'},{key:'deep',icon:'&#128260;',t:'深度掌握',d:'系统全面地学习'}];
+    h+='<div style="margin-bottom:28px"><label style="display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:12px">学习目标</label><div class="option-grid cols-3">'+goals.map(function(g){return '<div class="option-card '+(state.selfCheck.goal===g.key?'selected':'')+'" onclick="setGoal(\''+g.key+'\')"><div class="opt-icon">'+g.icon+'</div><div class="opt-title">'+g.t+'</div><div class="opt-desc">'+g.d+'</div></div>'}).join('')+'</div></div>';
+    var td=new Date().toISOString().split('T')[0];
+    h+='<div><label style="display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px">期望完成日期（可选）</label><input type="date" class="form-input" min="'+td+'" value="'+(state.selfCheck.targetDate||'')+'" onchange="setTargetDate(this.value)"><p style="font-size:12px;color:var(--gray-400);margin-top:8px">设置后我们会据此计算学习节奏建议</p></div>';
+  }else if(onboardingStep===4){
+    generatePath();
+    var sub=KNOWLEDGE_BASE[state.selectedSubject];
+    var an=state.learningPath.filter(function(n){return!n.skipped});
+    var td2=an.reduce(function(s,n){return s+n.duration},0);
+    var eta=new Date();eta.setDate(eta.getDate()+td2);
+    h+='<div style="background:var(--primary-50);border-radius:var(--radius-sm);padding:20px;margin-bottom:20px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="font-size:32px">'+sub.icon+'</div><div><div style="font-size:18px;font-weight:700">'+sub.name+'</div><div style="font-size:13px;color:var(--gray-500)">为你定制的学习路线</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px"><div style="text-align:center;padding:12px;background:white;border-radius:8px"><div style="font-size:24px;font-weight:800;color:var(--primary)">'+an.length+'</div><div style="font-size:11px;color:var(--gray-500)">学习模块</div></div><div style="text-align:center;padding:12px;background:white;border-radius:8px"><div style="font-size:24px;font-weight:800;color:var(--warning)">'+state.learningPath.filter(function(n){return n.skipped}).length+'</div><div style="font-size:11px;color:var(--gray-500)">已跳过</div></div><div style="text-align:center;padding:12px;background:white;border-radius:8px"><div style="font-size:24px;font-weight:800;color:var(--success)">'+td2+'</div><div style="font-size:11px;color:var(--gray-500)">预计天数</div></div></div><div style="text-align:center;margin-top:12px;font-size:13px;color:var(--gray-600)">按每天 '+Math.floor(state.selfCheck.dailyTime/60)+'h'+(state.selfCheck.dailyTime%60>0?(state.selfCheck.dailyTime%60)+'m':'')+' 计算，预计 '+formatDate(eta.toISOString().split('T')[0])+' 完成</div></div>';
+    h+='<div style="max-height:280px;overflow-y:auto;padding-right:4px">';
+    an.forEach(function(n,i){
+      var sn={foundation:'基础',advanced:'进阶',practice:'实战'}[n.stage];
+      var sc={foundation:'stage-foundation',advanced:'stage-advanced',practice:'stage-practice'}[n.stage];
+      h+='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-50)"><div style="width:28px;height:28px;border-radius:50%;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gray-500)">'+(i+1)+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600">'+n.name+'</div><div style="font-size:12px;color:var(--gray-400)">'+n.topics.length+' 个知识点</div></div><span class="stage-badge '+sc+'">'+sn+'</span><span style="font-size:12px;color:var(--gray-500)">'+n.duration+'天</span></div>';
+    });
+    h+='</div>';
+  }
+  c.innerHTML=h;
+  nb.disabled=(onboardingStep===0&&!state.selectedSubject);
+}
+
+function selectSubject(k){state.selectedSubject=k;state.selfCheck.levels={};renderOnboardingStep()}
+function setLevel(n,l){state.selfCheck.levels[n]=l;renderOnboardingStep()}
+function updateTime(v){state.selfCheck.dailyTime=parseInt(v);var h=Math.floor(v/60),m=v%60;document.getElementById('timeDisplay').textContent=h+'小时'+(m>0?m+'分钟':'')+' / 天'}
+function setMethod(k){state.selfCheck.preferredMethod=k;renderOnboardingStep()}
+function setGoal(k){state.selfCheck.goal=k;renderOnboardingStep()}
+function setTargetDate(v){state.selfCheck.targetDate=v||null}
+function onboardingNext(){if(onboardingStep<4){onboardingStep++;renderOnboardingStep()}else{state.onboarded=true;saveState();logActivity('path_generated',null,KNOWLEDGE_BASE[state.selectedSubject].name,'生成学习路线');document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';renderApp()}}
+function onboardingBack(){if(onboardingStep>0){onboardingStep--;renderOnboardingStep()}}
+
+// ==================== Path Generation ====================
+function generatePath(){
+  var sub=KNOWLEDGE_BASE[state.selectedSubject];if(!sub)return;
+  state.learningPath=sub.nodes.map(function(node){
+    var lv=state.selfCheck.levels[node.id]||0;
+    var skipped=lv>=3;
+    var dur=node.duration;
+    if(state.selfCheck.goal==='quick')dur=Math.ceil(dur*.75);
+    else if(state.selfCheck.goal==='deep')dur=Math.ceil(dur*1.25);
+    var tr=state.selfCheck.dailyTime/60;
+    if(tr<.5)dur=Math.ceil(dur*1.5);else if(tr>2)dur=Math.ceil(dur*.7);
+    var methods=node.methods;
+    if(state.selfCheck.preferredMethod!=='mixed')methods=[state.selfCheck.preferredMethod].concat(node.methods.filter(function(m){return m!==state.selfCheck.preferredMethod})).slice(0,2);
+    return Object.assign({},node,{skipped:skipped,duration:Math.max(1,dur),recommendedMethods:methods});
+  });
+  saveState();
+}
+
+// ==================== Main App ====================
+function renderApp(){
+  var sub=KNOWLEDGE_BASE[state.selectedSubject];if(!sub){startOnboarding();return}
+  document.getElementById('currentLearningName').textContent=sub.name;
+  renderUserProfileBox();
+  switchView(currentView);
+}
+
+function renderUserProfileBox(){
+  var box=document.getElementById('userProfileBox');
+  if(!state.profile){box.innerHTML='';return}
+  var ident=IDENTITIES.filter(function(i){return i.key===state.profile.identity})[0];
+  var skillsHtml=state.profile.skills.slice(0,4).map(function(k){
+    var s=SKILLS.filter(function(x){return x.key===k})[0];
+    return s?'<span class="up-skill">'+s.label+'</span>':'';
+  }).join('');
+  var extra=state.profile.skills.length>4?'<span class="up-skill">+'+(state.profile.skills.length-4)+'</span>':'';
+  box.innerHTML='<div class="up-header"><div class="up-avatar">'+(ident?ident.icon:'&#128100;')+'</div><div><div class="up-name">'+(ident?ident.title:'用户')+'</div><div class="up-identity">'+state.profile.skills.length+' 项技能</div></div></div>'+(state.profile.skills.length>0?'<div class="up-skills">'+skillsHtml+extra+'</div>':'');
+}
+
+function switchView(view){
+  currentView=view;
+  document.getElementById('view-dashboard').style.display=view==='dashboard'?'':'none';
+  document.getElementById('view-path').style.display=view==='path'?'':'none';
+  document.getElementById('view-practice').style.display=view==='practice'?'':'none';
+  document.getElementById('view-data').style.display=view==='data'?'':'none';
+  var navItems=document.querySelectorAll('.nav-item[data-view]');
+  for(var i=0;i<navItems.length;i++){navItems[i].classList.toggle('active',navItems[i].getAttribute('data-view')===view)}
+  if(view==='dashboard')renderDashboard();
+  if(view==='path')renderPath();
+  if(view==='practice')renderPractice();
+  if(view==='data')renderDataView();
+}
+
+// Attach nav handlers
+document.querySelectorAll('.nav-item[data-view]').forEach(function(el){el.addEventListener('click',function(){switchView(el.getAttribute('data-view'))})});
+
+// ==================== Dashboard ====================
+function renderDashboard(){
+  var sub=KNOWLEDGE_BASE[state.selectedSubject];
+  var hr=new Date().getHours();
+  var g='晚上好';if(hr<6)g='凌晨好';else if(hr<12)g='上午好';else if(hr<14)g='中午好';else if(hr<18)g='下午好';
+  var ident=state.profile&&IDENTITIES.filter(function(i){return i.key===state.profile.identity})[0];
+  document.getElementById('greeting').textContent=g+'，'+(ident?ident.title:'')+'，继续学习 '+sub.name;
+  var now=new Date();var wd=['日','一','二','三','四','五','六'];
+  document.getElementById('dateDisplay').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+wd[now.getDay()];
+
+  var an=state.learningPath.filter(function(n){return!n.skipped});
+  var cn=an.filter(function(n){return(state.nodeProgress[n.id]||{}).status==='completed'});
+  var ipn=an.filter(function(n){return(state.nodeProgress[n.id]||{}).status==='in-progress'})[0];
+  var td=an.reduce(function(s,n){return s+n.duration},0);
+  var ed=an.filter(function(n){return(state.nodeProgress[n.id]||{}).status==='completed'}).reduce(function(s,n){return s+n.duration},0);
+  var op=an.length>0?Math.round((cn.length/an.length)*100):0;
+  var tt=an.reduce(function(s,n){return s+n.quiz.length},0);
+  var dt=state.practiceRecords.filter(function(r){return r.passed}).length;
+
+  var stats=[
+    {i:'&#128218;',l:'学习模块',v:cn.length+'/'+an.length,s:'已完成 / 总计',c:'bg-primary'},
+    {i:'&#9889;',l:'当前进度',v:op+'%',s:ipn?'正在学习: '+ipn.name:'暂无进行中模块',c:'bg-warning'},
+    {i:'&#10003;',l:'练习通过',v:dt+'/'+tt,s:'练习题通过数',c:'bg-success'},
+    {i:'&#128197;',l:'预计剩余',v:Math.max(0,td-ed)+'天',s:'按当前节奏估算',c:'bg-blue'}
+  ];
+  document.getElementById('statsGrid').innerHTML=stats.map(function(s){return '<div class="stat-card"><div class="stat-icon '+s.c+'">'+s.i+'</div><div class="stat-value">'+s.v+'</div><div class="stat-label">'+s.l+'</div><div class="stat-sub">'+s.s+'</div></div>'}).join('');
+
+  var sn={foundation:'基础阶段',advanced:'进阶阶段',practice:'实战阶段'};
+  var sh='<div class="path-stages">';
+  ['foundation','advanced','practice'].forEach(function(st){
+    var sn2=an.filter(function(n){return n.stage===st});
+    if(sn2.length>0){var sd=sn2.filter(function(n){return(state.nodeProgress[n.id]||{}).status==='completed'}).length;sh+='<div class="path-stage-tab stage-'+st+'">'+sn[st]+'<span>'+sd+'/'+sn2.length+'</span></div>'}
+  });
+  sh+='</div>';
+  document.getElementById('dashboardPathOverview').innerHTML='<div class="path-overview-header"><h3>学习路线概览</h3><button class="btn btn-ghost btn-sm" onclick="switchView(\'path\')">查看详情</button></div><div class="path-progress-bar"><div class="path-progress-fill" style="width:'+op+'%"></div></div><div class="path-progress-info"><span>总进度: '+op+'%</span><span>'+cn.length+' / '+an.length+' 模块已完成</span></div>'+sh;
+}
+
+// ==================== Path View ====================
+function renderPath(){
+  var sub=KNOWLEDGE_BASE[state.selectedSubject];
+  document.getElementById('pathSubtitle').textContent=sub.name+' - 个性化学习路线';
+  var c=document.getElementById('pathContainer');
+  var an=state.learningPath.filter(function(n){return!n.skipped});
+  var sn=state.learningPath.filter(function(n){return n.skipped});
+  var cc=an.filter(function(n){return(state.nodeProgress[n.id]||{}).status==='completed'}).length;
+  var op=an.length>0?Math.round((cc/an.length)*100):0;
+  var h='<div class="path-overview"><div class="path-overview-header"><h3>学习路线总览</h3><button class="btn btn-ghost btn-sm" onclick="editProfile()">重新规划</button></div><div class="path-progress-bar"><div class="path-progress-fill" style="width:'+op+'%"></div></div><div class="path-progress-info"><span>总进度: '+op+'% ('+cc+'/'+an.length+')</span><span>预计 '+an.reduce(function(s,n){return s+n.duration},0)+' 天</span></div></div>';
+  h+='<div class="path-nodes">';
+  state.learningPath.forEach(function(node){
+    var st=(state.nodeProgress[node.id]||{}).status||'not-started';
+    var sc=node.skipped?'skipped':(st==='completed'?'completed':(st==='in-progress'?'in-progress':''));
+    var sn2={foundation:'基础',advanced:'进阶',practice:'实战'}[node.stage];
+    var sc2={foundation:'stage-foundation',advanced:'stage-advanced',practice:'stage-practice'}[node.stage];
+    var sl={'not-started':'未开始','in-progress':'学习中','completed':'已完成'}[st];
+    var sc3={'not-started':'status-not-started','in-progress':'status-in-progress','completed':'status-completed'}[st];
+    var ml={video:'&#127909; 视频',reading:'&#128214; 阅读',practice:'&#9999; 实操'};
+    h+='<div class="path-node '+sc+'"><div class="node-card '+(node.skipped?'skipped':'')+'"><div class="node-card-header"><div class="node-card-title"><h4>'+(node.skipped?'<span style="text-decoration:line-through;color:var(--gray-400)">'+node.name+'</span>':node.name)+'</h4><div class="node-meta"><span class="stage-badge '+sc2+'">'+sn2+'</span><span>&#9201; '+node.duration+'天</span><span>&#128221; '+node.topics.length+'个知识点</span>'+(node.skipped?'<span style="color:var(--success)">&#10003; 已掌握，已跳过</span>':'')+'</div></div><div class="node-actions">'+(!node.skipped?'<span class="node-status '+sc3+'">'+sl+'</span>':'<span class="node-status status-completed">已跳过</span>')+'</div></div>'+(!node.skipped?'<div class="node-card-body"><ul class="node-topics">'+node.topics.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul><div class="node-recommend"><div class="rec-item">推荐方式: '+node.recommendedMethods.map(function(m){return ml[m]}).join(' + ')+'</div><div class="rec-item">预计时长: '+node.duration+'天</div></div></div><div class="node-card-footer"><div class="node-footer-left">'+(st==='completed'?'&#10003; 已完成练习':st==='in-progress'?'正在学习中...':'准备就绪，可以开始')+'</div><div class="node-footer-right">'+(st!=='completed'&&!node.skipped?'<button class="btn btn-primary btn-sm" onclick="startNode(\''+node.id+'\')">'+(st==='in-progress'?'继续练习':'开始学习')+'</button>':'')+(st==='completed'?'<button class="btn btn-ghost btn-sm" onclick="startPractice(\''+node.id+'\')">重新练习</button>':'')+'</div></div>':'')+'</div></div>';
+  });
+  h+='</div>';
+  if(sn.length>0)h+='<div style="margin-top:24px;padding:16px 20px;background:var(--success-light);border-radius:var(--radius-sm);font-size:13px;color:#065f46">&#10003; 基于自检结果，已为你跳过 <strong>'+sn.length+'</strong> 个已掌握的模块：'+sn.map(function(n){return n.name}).join('、')+'</div>';
+  c.innerHTML=h;
+}
+
+// ==================== Node Actions ====================
+function startNode(nodeId){
+  if(!state.nodeProgress[nodeId])state.nodeProgress[nodeId]={};
+  var wasNotStarted=(state.nodeProgress[nodeId].status||'not-started')==='not-started';
+  state.nodeProgress[nodeId].status='in-progress';
+  saveState();
+  if(wasNotStarted){var node=state.learningPath.filter(function(n){return n.id===nodeId})[0];logActivity('start_learning',nodeId,node?node.name:'','开始学习模块')}
+  startPractice(nodeId);
+}
+
+// ==================== Quiz ====================
+function startPractice(nodeId){
+  var node=state.learningPath.filter(function(n){return n.id===nodeId})[0];if(!node)return;
+  quizState={nodeId:nodeId,questions:node.quiz,currentIdx:0,answers:new Array(node.quiz.length).fill(null),submitted:false};
+  document.getElementById('quizTitle').textContent=node.name+' - 练习巩固';
+  document.getElementById('quizModal').classList.add('show');
+  document.getElementById('quizFooter').style.display='flex';
+  logActivity('start_practice',nodeId,node.name,'开始练习');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  var q=quizState.questions[quizState.currentIdx];
+  var b=document.getElementById('quizBody');
+  var labels=['A','B','C','D'];
+  var prog=(quizState.currentIdx+1)+' / '+quizState.questions.length;
+  document.getElementById('quizProgressText').textContent='第 '+(quizState.currentIdx+1)+' 题 / 共 '+quizState.questions.length+' 题';
+  var h='<div class="quiz-progress">&#128221; '+prog+'</div><div class="quiz-question">'+(quizState.currentIdx+1)+'. '+q.q.replace(/\n/g,'<br>')+'</div><div class="quiz-options">';
+  q.options.forEach(function(opt,idx){
+    var cls='quiz-option';
+    if(quizState.submitted){if(idx===q.answer)cls+=' correct';else if(idx===quizState.answers[quizState.currentIdx])cls+=' wrong'}
+    else if(quizState.answers[quizState.currentIdx]===idx)cls+=' selected';
+    var ri='';
+    if(quizState.submitted){if(idx===q.answer)ri='<span class="opt-result">&#10003;</span>';else if(idx===quizState.answers[quizState.currentIdx])ri='<span class="opt-result">&#10007;</span>'}
+    h+='<div class="'+cls+'" '+(!quizState.submitted?'onclick="selectAnswer('+idx+')"':'')+'><span class="opt-label">'+labels[idx]+'</span><span class="opt-text">'+opt.replace(/\n/g,'<br>')+'</span>'+ri+'</div>';
+  });
+  h+='</div>';
+  if(quizState.submitted){var ic=quizState.answers[quizState.currentIdx]===q.answer;h+='<div class="quiz-feedback '+(ic?'correct':'wrong')+'"><h5>'+(ic?'&#10003; 回答正确':'&#10007; 回答错误')+'</h5><div>'+q.explain+'</div></div>'}
+  b.innerHTML=h;
+  var btn=document.getElementById('quizNextBtn');
+  if(quizState.submitted){
+    if(quizState.currentIdx<quizState.questions.length-1){btn.textContent='下一题';btn.onclick=function(){quizState.submitted=false;quizState.currentIdx++;renderQuestion()}}
+    else{btn.textContent='查看结果';btn.onclick=finishQuiz}
+  }else{
+    btn.textContent='提交答案';
+    btn.onclick=function(){if(quizState.answers[quizState.currentIdx]===null){showToast('请先选择一个答案');return}quizState.submitted=true;renderQuestion()};
+  }
+}
+
+function selectAnswer(idx){if(quizState.submitted)return;quizState.answers[quizState.currentIdx]=idx;renderQuestion()}
+
+function finishQuiz(){
+  var node=state.learningPath.filter(function(n){return n.id===quizState.nodeId})[0];
+  var correct=quizState.answers.filter(function(a,i){return a===quizState.questions[i].answer}).length;
+  var total=quizState.questions.length;
+  var score=Math.round((correct/total)*100);
+  var passed=score>=60;
+  var ei=state.practiceRecords.findIndex(function(r){return r.nodeId===quizState.nodeId});
+  var rec={nodeId:quizState.nodeId,nodeName:node.name,score:score,correct:correct,total:total,passed:passed,date:new Date().toISOString()};
+  if(ei>=0)state.practiceRecords[ei]=rec;else state.practiceRecords.push(rec);
+  if(passed){state.nodeProgress[quizState.nodeId]=Object.assign({},state.nodeProgress[quizState.nodeId]||{},{status:'completed',completedAt:new Date().toISOString(),score:score})}
+  saveState();
+  logActivity(passed?'pass_practice':'fail_practice',quizState.nodeId,node.name,(passed?'通过':'未通过')+'练习 | 得分: '+score+'分 | 答对: '+correct+'/'+total);
+  var an=state.learningPath.filter(function(n){return!n.skipped});
+  var allDone=an.every(function(n){return(state.nodeProgress[n.id]||{}).status==='completed'});
+  if(allDone&&passed)logActivity('finish_all',null,KNOWLEDGE_BASE[state.selectedSubject].name,'完成全部学习模块');
+  document.getElementById('quizFooter').style.display='none';
+  var b=document.getElementById('quizBody');
+  var sc=passed?'var(--success)':'var(--danger)';
+  var msg=passed?('恭喜！你已通过本模块练习。'+(getNextNode(quizState.nodeId)?'下一个模块已解锁，继续加油！':'你已完成所有学习模块！')):'差一点就通过了，回顾一下解析再试试吧。';
+  b.innerHTML='<div class="quiz-result"><div class="result-score" style="color:'+sc+'">'+score+'<span style="font-size:24px">分</span></div><div class="result-label" style="color:'+sc+'">'+(passed?'&#10003; 通过':'&#10007; 未通过')+'</div><div style="font-size:14px;color:var(--gray-600);margin-bottom:16px">答对 '+correct+' / '+total+' 题</div><div class="result-msg">'+msg+'</div><div style="margin-top:24px;display:flex;gap:12px;justify-content:center"><button class="btn btn-ghost" onclick="closeQuiz()">关闭</button>'+(passed&&getNextNode(quizState.nodeId)?'<button class="btn btn-primary" onclick="closeQuiz();startNode(\''+getNextNode(quizState.nodeId).id+'\')">学习下一模块</button>':'')+(!passed?'<button class="btn btn-primary" onclick="startPractice(\''+quizState.nodeId+'\')">重新练习</button>':'')+'</div></div>';
+}
+
+function getNextNode(id){var an=state.learningPath.filter(function(n){return!n.skipped});var i=an.findIndex(function(n){return n.id===id});if(i>=0&&i<an.length-1)return an[i+1];return null}
+function closeQuiz(){document.getElementById('quizModal').classList.remove('show');renderApp()}
+
+// ==================== Practice View ====================
+function renderPractice(){
+  var c=document.getElementById('practiceContainer');
+  if(state.practiceRecords.length===0){
+    c.innerHTML='<div class="empty-state"><div class="empty-icon">&#9999;</div><h3>还没有练习记录</h3><p>完成学习模块后的练习会记录在这里</p><button class="btn btn-primary" onclick="switchView(\'path\')">去学习路线</button></div>';
+    return;
+  }
+  var tr=state.practiceRecords.length;
+  var pc=state.practiceRecords.filter(function(r){return r.passed}).length;
+  var avg=Math.round(state.practiceRecords.reduce(function(s,r){return s+r.score},0)/tr);
+  var h='<div class="stat-card" style="grid-column:1/-1;margin-bottom:24px"><div style="display:flex;gap:32px;align-items:center"><div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--primary)">'+tr+'</div><div style="font-size:12px;color:var(--gray-500)">练习次数</div></div><div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--success)">'+pc+'</div><div style="font-size:12px;color:var(--gray-500)">通过模块</div></div><div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--warning)">'+avg+'</div><div style="font-size:12px;color:var(--gray-500)">平均分</div></div></div></div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px">';
+  state.practiceRecords.slice().reverse().forEach(function(r){
+    var sc=r.passed?'var(--success)':'var(--danger)';
+    var ds=new Date(r.date).toLocaleString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    h+='<div style="background:white;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--gray-100)"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px"><div><h4 style="font-size:15px;font-weight:700">'+r.nodeName+'</h4><p style="font-size:12px;color:var(--gray-500);margin-top:4px">'+ds+'</p></div><div style="text-align:right"><div style="font-size:28px;font-weight:800;color:'+sc+'">'+r.score+'<span style="font-size:14px">分</span></div><div style="font-size:12px;color:'+sc+'">'+(r.passed?'&#10003; 通过':'&#10007; 未通过')+'</div></div></div><div style="font-size:13px;color:var(--gray-600)">答对 '+r.correct+' / '+r.total+' 题</div><div style="height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;margin-top:8px"><div style="height:100%;width:'+r.score+'%;background:'+sc+';border-radius:3px"></div></div></div>';
+  });
+  h+='</div>';
+  c.innerHTML=h;
+}
+
+// ==================== Data View ====================
+function renderDataView(){
+  var c=document.getElementById('dataContainer');
+  var log=state.activityLog;
+  var an=state.learningPath.filter(function(n){return!n.skipped});
+  var activeDays=new Set(log.map(function(a){return a.time.split('T')[0]})).size;
+  var totalActivities=log.length;
+  var practiceCount=state.practiceRecords.length;
+  var avgScore=state.practiceRecords.length>0?Math.round(state.practiceRecords.reduce(function(s,r){return s+r.score},0)/state.practiceRecords.length):0;
+  var passedModules=an.filter(function(n){return(state.nodeProgress[n.id]||{}).status==='completed'}).length;
+
+  var h='<div class="stats-grid"><div class="stat-card"><div class="stat-icon bg-primary">&#128197;</div><div class="stat-value">'+activeDays+'</div><div class="stat-label">活跃天数</div><div class="stat-sub">有学习活动的天数</div></div><div class="stat-card"><div class="stat-icon bg-warning">&#9889;</div><div class="stat-value">'+totalActivities+'</div><div class="stat-label">学习活动数</div><div class="stat-sub">累计行为记录</div></div><div class="stat-card"><div class="stat-icon bg-success">&#10003;</div><div class="stat-value">'+practiceCount+'</div><div class="stat-label">练习次数</div><div class="stat-sub">通过 '+passedModules+' 个模块</div></div><div class="stat-card"><div class="stat-icon bg-blue">&#127942;</div><div class="stat-value">'+avgScore+'</div><div class="stat-label">平均练习分</div><div class="stat-sub">所有练习的平均分</div></div></div>';
+
+  if(state.practiceRecords.length>0){
+    h+='<div class="chart-card" style="margin-bottom:24px"><h3>成绩趋势</h3><p class="chart-desc">每次练习的得分变化</p><div class="chart-container"><canvas id="scoreTrendChart"></canvas></div></div>';
+  }
+
+  var actionLabels={'profile_created':'完善信息','start_learning':'开始学习','start_practice':'开始练习','pass_practice':'通过练习','fail_practice':'练习未通过','path_generated':'生成路线','finish_all':'全部完成'};
+  var actionClasses={'profile_created':'action-profile_created','start_learning':'action-start_learning','start_practice':'action-start_practice','pass_practice':'action-pass_practice','fail_practice':'action-fail_practice','path_generated':'action-path_generated','finish_all':'action-finish_all'};
+
+  h+='<div class="table-card" style="margin-bottom:24px"><div class="table-header"><div><h3>学习活动记录</h3><p>按时间倒序排列，记录每一次学习行为</p></div></div><div class="table-wrap">';
+  if(log.length===0){
+    h+='<div class="empty-state" style="padding:40px"><div class="empty-icon">&#128221;</div><h3>暂无学习活动记录</h3><p>开始学习后，你的行为会自动记录在这里</p></div>';
+  }else{
+    h+='<table class="data-table"><thead><tr><th>时间</th><th>行为</th><th>关联模块</th><th>详情</th></tr></thead><tbody>';
+    log.slice().reverse().forEach(function(a){
+      var ds=new Date(a.time).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      h+='<tr><td style="white-space:nowrap">'+ds+'</td><td><span class="action-badge '+(actionClasses[a.action]||'')+'">'+(actionLabels[a.action]||a.action)+'</span></td><td>'+(a.nodeName||'-')+'</td><td style="font-size:12px;color:var(--gray-500)">'+(a.detail||'-')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='</div></div>';
+
+  h+='<div class="table-card"><div class="table-header"><div><h3>模块进度详情</h3><p>各学习模块的当前状态与成绩</p></div></div><div class="table-wrap">';
+  if(an.length===0){
+    h+='<div class="empty-state" style="padding:40px"><h3>暂无学习模块</h3><p>请先生成学习路线</p></div>';
+  }else{
+    var sn={foundation:'基础',advanced:'进阶',practice:'实战'};
+    var sc={foundation:'stage-foundation',advanced:'stage-advanced',practice:'stage-practice'};
+    var sl={'not-started':'未开始','in-progress':'学习中','completed':'已完成'};
+    var sc2={'not-started':'status-not-started','in-progress':'status-in-progress','completed':'status-completed'};
+    h+='<table class="data-table"><thead><tr><th>模块名称</th><th>阶段</th><th>状态</th><th>成绩</th><th>完成日期</th></tr></thead><tbody>';
+    an.forEach(function(node){
+      var prog=state.nodeProgress[node.id]||{};
+      var st=prog.status||'not-started';
+      var rec=state.practiceRecords.filter(function(r){return r.nodeId===node.id})[0];
+      var compDate=prog.completedAt?formatDate(prog.completedAt.split('T')[0]):'-';
+      h+='<tr><td>'+node.name+'</td><td><span class="stage-badge '+sc[node.stage]+'">'+sn[node.stage]+'</span></td><td><span class="node-status '+sc2[st]+'">'+sl[st]+'</span></td><td>'+(rec?rec.score+'分':'-')+'</td><td>'+compDate+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='</div></div>';
+  c.innerHTML=h;
+
+  if(state.practiceRecords.length>0){
+    if(scoreTrendChart)scoreTrendChart.destroy();
+    var ctx=document.getElementById('scoreTrendChart').getContext('2d');
+    scoreTrendChart=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:state.practiceRecords.map(function(r,i){return '第'+(i+1)+'次'}),
+        datasets:[{label:'得分',data:state.practiceRecords.map(function(r){return r.score}),borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.1)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#6366f1',pointBorderColor:'white',pointBorderWidth:2}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '得分: '+c.parsed.y+'分'}}}},scales:{y:{beginAtZero:true,max:100,ticks:{stepSize:20,font:{size:12}},grid:{color:'#f3f4f6'}},x:{ticks:{font:{size:12}},grid:{display:false}}}}
+    });
+  }
+}
+
+// ==================== Utils ====================
+function formatDate(s){if(!s)return'-';var d=new Date(s);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function resetAll(){if(confirm('确定清除所有数据吗？这将删除你的个人信息、学习进度和练习记录。')){localStorage.removeItem(STORAGE_KEY);location.reload()}}
+function logout(){
+  if(!confirm('确定要退出吗？你的学习进度会保留，下次打开可以继续。'))return;
+  document.getElementById('app').style.display='none';
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('landing').style.display='flex';
+  // Reset profile draft for security
+  profileDraft={identity:null,skills:[],idea:''};
+  renderLanding();
+}
+document.getElementById('quizModal').addEventListener('click',function(e){if(e.target===this)closeQuiz()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeQuiz()});
+
+// Idea box character count
+document.addEventListener('DOMContentLoaded',function(){
+  var ib=document.getElementById('ideaBox');
+  if(ib)ib.addEventListener('input',function(){document.getElementById('ideaCount').textContent=this.value.length});
+});
+
+// ==================== Init ====================
+function init(){
+  var stored=localStorage.getItem(STORAGE_KEY);
+  if(stored){
+    try{
+      var parsed=JSON.parse(stored);
+      state=Object.assign({},JSON.parse(JSON.stringify(DEFAULT_STATE)),parsed);
+      if(!state.profile)state.profile=null;
+      if(!state.activityLog)state.activityLog=[];
+      if(!state.selfCheck)state.selfCheck={levels:{},dailyTime:60,preferredMethod:'mixed',goal:'balanced',targetDate:null};
+      if(!state.nodeProgress)state.nodeProgress={};
+      if(!state.practiceRecords)state.practiceRecords=[];
+      if(!state.learningPath)state.learningPath=[];
+    }catch(e){state=JSON.parse(JSON.stringify(DEFAULT_STATE))}
+  }
+  // Migrate from v1
+  if(!state.profile){
+    var v1=localStorage.getItem('zhilu_state_v1');
+    if(v1){
+      try{
+        var v1s=JSON.parse(v1);
+        state.onboarded=v1s.onboarded||false;
+        state.selectedSubject=v1s.selectedSubject||null;
+        state.selfCheck=v1s.selfCheck||state.selfCheck;
+        state.learningPath=v1s.learningPath||[];
+        state.nodeProgress=v1s.nodeProgress||{};
+        state.practiceRecords=v1s.practiceRecords||[];
+        saveState();
+      }catch(e){}
+    }
+  }
+  if(state.profile&&state.onboarded&&state.selectedSubject){
+    document.getElementById('landing').style.display='none';
+    document.getElementById('onboarding').style.display='none';
+    document.getElementById('app').style.display='flex';
+    renderApp();
+  }else if(state.profile){
+    document.getElementById('landing').style.display='none';
+    if(state.onboarded&&state.selectedSubject){document.getElementById('app').style.display='flex';renderApp()}
+    else{startOnboarding()}
+  }else{
+    renderLanding();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
